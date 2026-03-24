@@ -1,0 +1,10 @@
+﻿.venv/
+.tmp/
+.test-tmp/
+__pycache__/
+*.pyc
+artifacts/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
