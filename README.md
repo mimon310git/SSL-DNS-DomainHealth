@@ -11,7 +11,7 @@ Domain Sentinel is a small multi-site SSL, DNS, redirect, and endpoint health ma
 - checks HTTP endpoint status, content, and latency threshold
 - stores a snapshot from each run
 - compares the latest run against the previous run
-- exports JSON and CSV reports
+- exports JSON, CSV, and HTML reports
 
 ## Why It Matters
 
@@ -91,6 +91,12 @@ Then:
 
 ```powershell
 python main.py run -c configs/domains.example.yaml
+```
+
+Open the generated HTML report:
+
+```powershell
+start artifacts\latest.html
 ```
 
 ## Config Example
