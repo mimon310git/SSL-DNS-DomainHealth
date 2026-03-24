@@ -12,6 +12,43 @@ Domain Sentinel is a small multi-site SSL, DNS, redirect, and endpoint health ma
 - compares the latest run against the previous run
 - exports JSON and CSV reports
 
+## Why It Matters
+
+A domain is not just a single web page. A healthy public-facing service depends on multiple layers working together:
+
+- DNS has to resolve to the correct target
+- TLS/SSL has to be valid and trustworthy
+- redirects have to lead to the correct destination
+- the HTTP endpoint has to respond with the expected result
+
+Domain Sentinel treats those layers as one health surface instead of checking only uptime.
+
+## How It Works
+
+### SSL / TLS
+
+The SSL check validates the security layer of the service. It inspects certificate validity, days until expiry, and the negotiated TLS version. This matters because a website can still be online while being close to certificate expiration or using a weak TLS setup.
+
+### DNS
+
+The DNS check validates the routing layer of the domain. It confirms that the domain resolves and, when expectations are configured, that the resolved records match the intended state. This matters because a service may fail even when the application itself is healthy if DNS points to the wrong place.
+
+### Redirects
+
+The redirect check validates URL flow correctness. It follows the redirect chain, detects loops, and reports the final destination. This matters because many production sites rely on predictable redirects such as `http -> https` or `apex -> www`.
+
+### HTTP
+
+The HTTP check validates application-level availability. It checks whether an endpoint responds, returns the expected status code, contains expected content, and stays within an acceptable latency threshold. This is the closest layer to what a real user or client actually experiences.
+
+### Snapshot Diffing
+
+A one-time check only describes the current state. Domain Sentinel also stores snapshots and compares the current run with the previous one. This turns the tool from a simple checker into a small monitoring utility that can answer not only \"what is wrong now\" but also \"what changed since the last run\".
+
+### JSON / CSV Reporting
+
+The reporting layer makes the results reusable. JSON is intended for automation and downstream processing, while CSV is intended for quick inspection and lightweight reporting. That makes the project useful both for terminal use and for future integrations.
+
 ## Stack
 
 - Python 3.12
