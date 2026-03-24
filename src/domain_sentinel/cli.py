@@ -23,7 +23,7 @@ def build_parser() -> argparse.ArgumentParser:
         "-o",
         "--output-dir",
         default="artifacts",
-        help="Directory where JSON/CSV reports and snapshots will be written.",
+        help="Directory where JSON/CSV/HTML reports and snapshots will be written.",
     )
     run_parser.add_argument(
         "--pretty-summary",
@@ -45,7 +45,12 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Error: {exc}", file=sys.stderr)
             return 3
 
-        print_console_report(execution.snapshot, execution.latest_json_path, execution.latest_csv_path)
+        print_console_report(
+            execution.snapshot,
+            execution.latest_json_path,
+            execution.latest_csv_path,
+            execution.latest_html_path,
+        )
         if args.pretty_summary:
             print(json.dumps(_summary_payload(execution.snapshot), indent=2))
         return exit_code_for_status(execution.snapshot.summary.overall_status)
@@ -54,7 +59,12 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-def print_console_report(snapshot: Snapshot, latest_json_path: str, latest_csv_path: str) -> None:
+def print_console_report(
+    snapshot: Snapshot,
+    latest_json_path: str,
+    latest_csv_path: str,
+    latest_html_path: str,
+) -> None:
     print(
         f"Domain Sentinel run at {snapshot.generated_at} "
         f"[overall={snapshot.summary.overall_status.upper()}]"
@@ -63,7 +73,9 @@ def print_console_report(snapshot: Snapshot, latest_json_path: str, latest_csv_p
         f"Sites: {snapshot.summary.total_sites} | OK: {snapshot.summary.ok_sites} | "
         f"Warning: {snapshot.summary.warning_sites} | Critical: {snapshot.summary.critical_sites}"
     )
-    print(f"Reports: JSON={latest_json_path} CSV={latest_csv_path}")
+    print(
+        f"Reports: JSON={latest_json_path} CSV={latest_csv_path} HTML={latest_html_path}"
+    )
     for site in snapshot.site_results:
         print(f"\n[{site.overall_status.upper():8}] {site.id} ({site.domain})")
         for check in site.checks:

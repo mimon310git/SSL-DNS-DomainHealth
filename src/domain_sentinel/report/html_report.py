@@ -1,0 +1,106 @@
+﻿from __future__ import annotations
+
+from html import escape
+from pathlib import Path
+
+from ..models import Snapshot
+
+
+def write_html_report(snapshot: Snapshot, path: str | Path) -> None:
+    target = Path(path)
+    cards = []
+    for site in snapshot.site_results:
+        checks = "".join(
+            f"<li><strong>{escape(check.name)}</strong>: {escape(check.status.upper())} - {escape(check.summary)}</li>"
+            for check in site.checks
+        )
+        changes = "".join(f"<li>{escape(change)}</li>" for change in site.changes) or "<li>No changes detected.</li>"
+        cards.append(
+            f"""
+            <section class=\"site-card {escape(site.overall_status)}\">
+              <div class=\"site-header\">
+                <div>
+                  <h2>{escape(site.id)}</h2>
+                  <p>{escape(site.domain)}</p>
+                </div>
+                <span class=\"badge {escape(site.overall_status)}\">{escape(site.overall_status.upper())}</span>
+              </div>
+              <div class=\"site-grid\">
+                <div>
+                  <h3>Checks</h3>
+                  <ul>{checks}</ul>
+                </div>
+                <div>
+                  <h3>Changes</h3>
+                  <ul>{changes}</ul>
+                </div>
+              </div>
+            </section>
+            """
+        )
+
+    html = f"""<!doctype html>
+<html lang=\"en\">
+<head>
+  <meta charset=\"utf-8\">
+  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
+  <title>Domain Sentinel Report</title>
+  <style>
+    :root {{
+      --ok: #16794f;
+      --warning: #9a6700;
+      --critical: #b42318;
+      --surface: #ffffff;
+      --surface-alt: #f6f8fa;
+      --text: #1f2328;
+      --muted: #57606a;
+      --border: #d0d7de;
+    }}
+    * {{ box-sizing: border-box; }}
+    body {{ margin: 0; padding: 32px; font-family: Segoe UI, Arial, sans-serif; background: linear-gradient(180deg, #f8fafc 0%, #eef2f6 100%); color: var(--text); }}
+    .wrap {{ max-width: 1120px; margin: 0 auto; }}
+    .hero {{ background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 24px; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); }}
+    .hero h1 {{ margin: 0 0 8px; font-size: 30px; }}
+    .hero p {{ margin: 0; color: var(--muted); }}
+    .summary {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 24px 0; }}
+    .summary-card {{ background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }}
+    .summary-card strong {{ display: block; font-size: 28px; margin-top: 6px; }}
+    .summary-card span {{ color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }}
+    .site-card {{ background: var(--surface); border: 1px solid var(--border); border-left-width: 6px; border-radius: 16px; padding: 20px; margin-bottom: 18px; box-shadow: 0 12px 24px rgba(15, 23, 42, 0.05); }}
+    .site-card.ok {{ border-left-color: var(--ok); }}
+    .site-card.warning {{ border-left-color: var(--warning); }}
+    .site-card.critical {{ border-left-color: var(--critical); }}
+    .site-header {{ display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }}
+    .site-header h2 {{ margin: 0; font-size: 22px; }}
+    .site-header p {{ margin: 4px 0 0; color: var(--muted); }}
+    .site-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 18px; }}
+    .badge {{ display: inline-block; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; }}
+    .badge.ok {{ background: #dcfff1; color: var(--ok); }}
+    .badge.warning {{ background: #fff2d5; color: var(--warning); }}
+    .badge.critical {{ background: #ffe2e0; color: var(--critical); }}
+    h3 {{ margin: 0 0 12px; font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }}
+    ul {{ margin: 0; padding-left: 18px; }}
+    li {{ margin: 0 0 8px; line-height: 1.45; }}
+    footer {{ margin-top: 24px; color: var(--muted); font-size: 13px; }}
+  </style>
+</head>
+<body>
+  <div class=\"wrap\">
+    <section class=\"hero\">
+      <h1>Domain Sentinel Report</h1>
+      <p>Generated at {escape(snapshot.generated_at)} from {escape(snapshot.config_path)}</p>
+    </section>
+    <section class=\"summary\">
+      <div class=\"summary-card\"><span>Overall</span><strong>{escape(snapshot.summary.overall_status.upper())}</strong></div>
+      <div class=\"summary-card\"><span>Total Sites</span><strong>{snapshot.summary.total_sites}</strong></div>
+      <div class=\"summary-card\"><span>OK</span><strong>{snapshot.summary.ok_sites}</strong></div>
+      <div class=\"summary-card\"><span>Warning</span><strong>{snapshot.summary.warning_sites}</strong></div>
+      <div class=\"summary-card\"><span>Critical</span><strong>{snapshot.summary.critical_sites}</strong></div>
+    </section>
+    {''.join(cards)}
+    <footer>Generated by Domain Sentinel.</footer>
+  </div>
+</body>
+</html>
+"""
+    target.write_text(html, encoding="utf-8")

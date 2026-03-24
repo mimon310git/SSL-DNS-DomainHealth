@@ -43,6 +43,12 @@
       "id": "iana-dns",
       "domain": "iana.org",
       "checks": ["dns"]
+    },
+    {
+      "id": "globalsqa-demo",
+      "domain": "www.globalsqa.com",
+      "url": "https://www.globalsqa.com/demo-site/",
+      "checks": ["ssl", "dns", "redirect", "http"]
     }
   ]
 }

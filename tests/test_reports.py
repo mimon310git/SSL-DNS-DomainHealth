@@ -6,14 +6,15 @@ from pathlib import Path
 from tests import _bootstrap  # noqa: F401
 from domain_sentinel.models import CheckResult, RunSummary, SiteResult, Snapshot
 from domain_sentinel.report.csv_report import write_csv_report
+from domain_sentinel.report.html_report import write_html_report
 
 ROOT = Path(__file__).resolve().parents[1]
 TEST_ROOT = ROOT / ".test-tmp"
 
 
 class ReportTests(unittest.TestCase):
-    def test_writes_csv_summary(self) -> None:
-        snapshot = Snapshot(
+    def _snapshot(self) -> Snapshot:
+        return Snapshot(
             generated_at="2026-03-24T10:00:00+00:00",
             config_path="config.json",
             summary=RunSummary(
@@ -38,6 +39,9 @@ class ReportTests(unittest.TestCase):
                 )
             ],
         )
+
+    def test_writes_csv_summary(self) -> None:
+        snapshot = self._snapshot()
         workdir = TEST_ROOT / "csv-report"
         shutil.rmtree(workdir, ignore_errors=True)
         workdir.mkdir(parents=True, exist_ok=True)
@@ -50,6 +54,19 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(rows[0]["site_id"], "main")
         self.assertEqual(rows[0]["ssl_days_to_expiry"], "5")
         self.assertEqual(rows[0]["change_count"], "1")
+
+    def test_writes_html_report(self) -> None:
+        snapshot = self._snapshot()
+        workdir = TEST_ROOT / "html-report"
+        shutil.rmtree(workdir, ignore_errors=True)
+        workdir.mkdir(parents=True, exist_ok=True)
+        path = workdir / "latest.html"
+        write_html_report(snapshot, path)
+        content = path.read_text(encoding="utf-8")
+
+        self.assertIn("Domain Sentinel Report", content)
+        self.assertIn("main", content)
+        self.assertIn("something changed", content)
 
 
 if __name__ == "__main__":

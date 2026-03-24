@@ -5,6 +5,7 @@ Domain Sentinel is a small multi-site SSL, DNS, redirect, and endpoint health ma
 ## What it does
 
 - checks SSL certificate expiry and basic TLS details
+- flags hostname mismatch, self-signed certificates, and legacy TLS versions
 - checks DNS records against expected values or basic resolvability
 - checks redirect behavior and loop risk
 - checks HTTP endpoint status, content, and latency threshold
@@ -27,7 +28,7 @@ Domain Sentinel treats those layers as one health surface instead of checking on
 
 ### SSL / TLS
 
-The SSL check validates the security layer of the service. It inspects certificate validity, days until expiry, and the negotiated TLS version. This matters because a website can still be online while being close to certificate expiration or using a weak TLS setup.
+The SSL check validates the security layer of the service. It inspects certificate validity, days until expiry, the negotiated TLS version, hostname matching, and basic certificate trust signals such as self-signed detection. This matters because a website can still be online while being close to certificate expiration or using a weak or mismatched TLS setup.
 
 ### DNS
 
@@ -48,6 +49,10 @@ A one-time check only describes the current state. Domain Sentinel also stores s
 ### JSON / CSV Reporting
 
 The reporting layer makes the results reusable. JSON is intended for automation and downstream processing, while CSV is intended for quick inspection and lightweight reporting. That makes the project useful both for terminal use and for future integrations.
+
+### HTML Reporting
+
+The HTML report turns the latest run into a shareable visual summary. Instead of reading raw JSON or terminal output, a user can open a single file and inspect overall status, per-site results, and detected changes in a more presentation-friendly format.
 
 ## Stack
 
@@ -132,6 +137,7 @@ Each run writes:
 
 - `artifacts/latest.json`
 - `artifacts/latest.csv`
+- `artifacts/latest.html`
 - `artifacts/runs/<timestamp>.json`
 
 Exit codes:

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
@@ -80,6 +80,6 @@ class RunExecution:
     output_dir: str
     latest_json_path: str
     latest_csv_path: str
+    latest_html_path: str
     history_json_path: str
     used_previous_snapshot: bool
-

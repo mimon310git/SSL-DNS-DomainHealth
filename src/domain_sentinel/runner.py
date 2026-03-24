@@ -39,6 +39,7 @@ def execute_run(config: AppConfig, output_dir: str) -> RunExecution:
         output_dir=output_dir,
         latest_json_path=paths["latest_json_path"],
         latest_csv_path=paths["latest_csv_path"],
+        latest_html_path=paths["latest_html_path"],
         history_json_path=paths["history_json_path"],
         used_previous_snapshot=previous_snapshot is not None,
     )
