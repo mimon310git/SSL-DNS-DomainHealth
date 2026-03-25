@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import Any
 
@@ -66,6 +66,18 @@ def _compare_check_details(name: str, before: dict[str, Any], after: dict[str, A
                 f"{before_details.get('tls_version')} to {after_details.get('tls_version')}."
             )
 
+    if name == "domain_expiration":
+        if before_details.get("expires_at") != after_details.get("expires_at"):
+            messages.append(
+                "Domain expiry changed from "
+                f"{before_details.get('expires_at')} to {after_details.get('expires_at')}."
+            )
+        if before_details.get("registered_domain") != after_details.get("registered_domain"):
+            messages.append(
+                "Registered domain changed from "
+                f"{before_details.get('registered_domain')} to {after_details.get('registered_domain')}."
+            )
+
     if name == "dns":
         before_records = before_details.get("actual_records", {})
         after_records = after_details.get("actual_records", {})
@@ -99,6 +111,18 @@ def _compare_check_details(name: str, before: dict[str, Any], after: dict[str, A
             messages.append(
                 "HTTP final URL changed from "
                 f"{before_details.get('final_url')} to {after_details.get('final_url')}."
+            )
+
+    if name == "security_headers":
+        if before_details.get("missing_headers") != after_details.get("missing_headers"):
+            messages.append(
+                "Missing security headers changed from "
+                f"{before_details.get('missing_headers', [])} to {after_details.get('missing_headers', [])}."
+            )
+        if before_details.get("invalid_headers") != after_details.get("invalid_headers"):
+            messages.append(
+                "Invalid security headers changed from "
+                f"{before_details.get('invalid_headers', [])} to {after_details.get('invalid_headers', [])}."
             )
 
     return messages

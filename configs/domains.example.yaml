@@ -1,9 +1,11 @@
-﻿version: 1
+version: 1
 
 defaults:
   timeout_seconds: 8
   ssl_warning_days: 21
   ssl_critical_days: 7
+  domain_warning_days: 45
+  domain_critical_days: 14
   user_agent: DomainSentinel/0.1
   follow_redirects_for_http: true
   max_redirect_hops: 5
@@ -13,7 +15,7 @@ sites:
   - id: example-main
     domain: example.com
     url: https://example.com/
-    checks: [ssl, dns, redirect, http]
+    checks: [ssl, domain_expiration, dns, redirect, http]
     expect:
       status_code: 200
       body_contains: Example Domain
@@ -21,18 +23,20 @@ sites:
   - id: github-home
     domain: github.com
     url: https://github.com/
-    checks: [ssl, dns, redirect, http]
+    checks: [ssl, domain_expiration, dns, redirect, http, security_headers]
     expect:
       status_code: 200
+      max_response_ms: 2000
 
   - id: python-home
     domain: www.python.org
+    registered_domain: python.org
     url: https://www.python.org/
-    checks: [ssl, dns, redirect, http]
+    checks: [ssl, domain_expiration, dns, redirect, http, security_headers]
     expect:
       status_code: 200
-      body_contains: Python
+      max_response_ms: 2000
 
   - id: iana-dns
     domain: iana.org
-    checks: [dns]
+    checks: [dns, domain_expiration]

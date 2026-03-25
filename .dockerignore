@@ -1,0 +1,11 @@
+.venv/
+.tmp/
+.test-tmp/
+artifacts/
+dist/
+build/
+.git/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

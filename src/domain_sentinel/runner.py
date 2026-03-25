@@ -1,9 +1,16 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import asdict
 from datetime import datetime, timezone
 
-from .checks import run_dns_check, run_http_check, run_redirect_check, run_ssl_check
+from .checks import (
+    run_dns_check,
+    run_domain_expiration_check,
+    run_http_check,
+    run_redirect_check,
+    run_security_headers_check,
+    run_ssl_check,
+)
 from .diff import compare_snapshots
 from .models import AppConfig, CheckResult, RunExecution, RunSummary, SiteResult, Snapshot
 from .severity import combine_statuses
@@ -15,6 +22,8 @@ CHECK_HANDLERS = {
     "dns": run_dns_check,
     "redirect": run_redirect_check,
     "http": run_http_check,
+    "security_headers": run_security_headers_check,
+    "domain_expiration": run_domain_expiration_check,
 }
 
 

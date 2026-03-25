@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import csv
 from pathlib import Path
@@ -19,21 +19,27 @@ def write_csv_report(snapshot: Snapshot, path: str | Path) -> None:
                 "overall_status",
                 "ssl_status",
                 "ssl_days_to_expiry",
+                "domain_expiration_status",
+                "domain_days_to_expiry",
                 "dns_status",
                 "http_status",
                 "http_status_code",
                 "http_response_ms",
                 "redirect_status",
                 "redirect_final_url",
+                "security_headers_status",
+                "missing_security_headers",
                 "change_count",
             ],
         )
         writer.writeheader()
         for site in snapshot.site_results:
             ssl_check = _find_check(site, "ssl")
+            domain_check = _find_check(site, "domain_expiration")
             dns_check = _find_check(site, "dns")
             http_check = _find_check(site, "http")
             redirect_check = _find_check(site, "redirect")
+            headers_check = _find_check(site, "security_headers")
             writer.writerow(
                 {
                     "site_id": site.id,
@@ -45,6 +51,10 @@ def write_csv_report(snapshot: Snapshot, path: str | Path) -> None:
                     "ssl_days_to_expiry": (
                         ssl_check.details.get("days_to_expiry") if ssl_check else ""
                     ),
+                    "domain_expiration_status": domain_check.status if domain_check else "",
+                    "domain_days_to_expiry": (
+                        domain_check.details.get("days_to_expiry") if domain_check else ""
+                    ),
                     "dns_status": dns_check.status if dns_check else "",
                     "http_status": http_check.status if http_check else "",
                     "http_status_code": http_check.details.get("status_code") if http_check else "",
@@ -52,6 +62,10 @@ def write_csv_report(snapshot: Snapshot, path: str | Path) -> None:
                     "redirect_status": redirect_check.status if redirect_check else "",
                     "redirect_final_url": (
                         redirect_check.details.get("final_url") if redirect_check else ""
+                    ),
+                    "security_headers_status": headers_check.status if headers_check else "",
+                    "missing_security_headers": (
+                        ",".join(headers_check.details.get("missing_headers", [])) if headers_check else ""
                     ),
                     "change_count": len(site.changes),
                 }

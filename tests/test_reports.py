@@ -1,4 +1,4 @@
-﻿import csv
+import csv
 import shutil
 import unittest
 from pathlib import Path
@@ -33,7 +33,19 @@ class ReportTests(unittest.TestCase):
                     overall_status="warning",
                     checks=[
                         CheckResult("ssl", "warning", "soon", {"days_to_expiry": 5}),
+                        CheckResult(
+                            "domain_expiration",
+                            "ok",
+                            "long enough",
+                            {"days_to_expiry": 180},
+                        ),
                         CheckResult("http", "ok", "good", {"status_code": 200, "response_ms": 120}),
+                        CheckResult(
+                            "security_headers",
+                            "warning",
+                            "missing HSTS",
+                            {"missing_headers": ["Strict-Transport-Security"]},
+                        ),
                     ],
                     changes=["something changed"],
                 )
@@ -53,6 +65,9 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["site_id"], "main")
         self.assertEqual(rows[0]["ssl_days_to_expiry"], "5")
+        self.assertEqual(rows[0]["domain_days_to_expiry"], "180")
+        self.assertEqual(rows[0]["security_headers_status"], "warning")
+        self.assertEqual(rows[0]["missing_security_headers"], "Strict-Transport-Security")
         self.assertEqual(rows[0]["change_count"], "1")
 
     def test_writes_html_report(self) -> None:

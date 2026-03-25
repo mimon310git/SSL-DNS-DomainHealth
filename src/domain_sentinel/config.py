@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 from pathlib import Path
@@ -9,7 +9,20 @@ from .models import AppConfig, Defaults, SiteConfig
 
 
 DEFAULT_CHECKS = ["ssl", "dns", "redirect", "http"]
-SUPPORTED_CHECKS = set(DEFAULT_CHECKS)
+SUPPORTED_CHECKS = set(DEFAULT_CHECKS) | {"security_headers", "domain_expiration"}
+MULTI_PART_PUBLIC_SUFFIXES = {
+    "ac.uk",
+    "co.jp",
+    "co.nz",
+    "co.uk",
+    "com.au",
+    "com.br",
+    "com.mx",
+    "gov.uk",
+    "net.au",
+    "org.au",
+    "org.uk",
+}
 
 
 def load_config(path: str | Path) -> AppConfig:
@@ -70,6 +83,8 @@ def _build_defaults(raw: dict[str, Any]) -> Defaults:
         timeout_seconds=int(raw.get("timeout_seconds", 8)),
         ssl_warning_days=int(raw.get("ssl_warning_days", 21)),
         ssl_critical_days=int(raw.get("ssl_critical_days", 7)),
+        domain_warning_days=int(raw.get("domain_warning_days", 45)),
+        domain_critical_days=int(raw.get("domain_critical_days", 14)),
         user_agent=str(raw.get("user_agent", "DomainSentinel/0.1")),
         follow_redirects_for_http=bool(raw.get("follow_redirects_for_http", True)),
         max_redirect_hops=int(raw.get("max_redirect_hops", 5)),
@@ -81,6 +96,10 @@ def _build_defaults(raw: dict[str, Any]) -> Defaults:
         raise ValueError("SSL thresholds must be zero or greater.")
     if defaults.ssl_critical_days > defaults.ssl_warning_days:
         raise ValueError("'ssl_critical_days' cannot be greater than 'ssl_warning_days'.")
+    if defaults.domain_critical_days < 0 or defaults.domain_warning_days < 0:
+        raise ValueError("Domain thresholds must be zero or greater.")
+    if defaults.domain_critical_days > defaults.domain_warning_days:
+        raise ValueError("'domain_critical_days' cannot be greater than 'domain_warning_days'.")
     if defaults.max_redirect_hops <= 0:
         raise ValueError("'max_redirect_hops' must be greater than zero.")
     return defaults
@@ -108,10 +127,14 @@ def _build_site(raw: dict[str, Any]) -> SiteConfig:
     checks = _normalize_checks(raw.get("checks"))
     url = str(provided_url or f"https://{domain}/").strip()
     redirect_url = str(raw.get("redirect_url") or f"http://{domain}/").strip()
+    registered_domain = str(
+        raw.get("registered_domain") or raw.get("registrable_domain") or _derive_registered_domain(domain)
+    ).strip()
 
     return SiteConfig(
         id=site_id,
         domain=domain,
+        registered_domain=registered_domain or None,
         url=url,
         redirect_url=redirect_url,
         checks=checks,
@@ -167,3 +190,13 @@ def _normalize_dns_key(value: str) -> str:
         return "TXT_CONTAINS"
     return lowered.upper()
 
+
+def _derive_registered_domain(domain: str) -> str:
+    normalized = domain.strip().strip(".").lower()
+    labels = [label for label in normalized.split(".") if label]
+    if len(labels) <= 2:
+        return normalized
+    suffix = ".".join(labels[-2:])
+    if suffix in MULTI_PART_PUBLIC_SUFFIXES and len(labels) >= 3:
+        return ".".join(labels[-3:])
+    return ".".join(labels[-2:])

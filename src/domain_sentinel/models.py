@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
@@ -12,6 +12,8 @@ class Defaults:
     timeout_seconds: int = 8
     ssl_warning_days: int = 21
     ssl_critical_days: int = 7
+    domain_warning_days: int = 45
+    domain_critical_days: int = 14
     user_agent: str = "DomainSentinel/0.1"
     follow_redirects_for_http: bool = True
     max_redirect_hops: int = 5
@@ -22,6 +24,7 @@ class Defaults:
 class SiteConfig:
     id: str
     domain: str
+    registered_domain: str | None
     url: str
     redirect_url: str
     checks: list[str]

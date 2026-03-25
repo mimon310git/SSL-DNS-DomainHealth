@@ -1,4 +1,4 @@
-﻿import json
+import json
 import shutil
 import unittest
 from pathlib import Path
@@ -14,10 +14,15 @@ class ConfigTests(unittest.TestCase):
     def test_loads_json_and_normalizes_expectations(self) -> None:
         payload = {
             "version": 1,
+            "defaults": {
+                "domain_warning_days": 60,
+                "domain_critical_days": 20,
+            },
             "sites": [
                 {
                     "id": "site-1",
-                    "domain": "example.com",
+                    "domain": "api.example.com",
+                    "checks": ["ssl", "security_headers", "domain_expiration"],
                     "expected_status": 200,
                     "expected_contains": "ok",
                     "expected_redirect_to": "https://www.example.com/",
@@ -33,12 +38,15 @@ class ConfigTests(unittest.TestCase):
         config = load_config(path)
 
         site = config.sites[0]
+        self.assertEqual(config.defaults.domain_warning_days, 60)
+        self.assertEqual(config.defaults.domain_critical_days, 20)
         self.assertEqual(site.expect["status_code"], 200)
         self.assertEqual(site.expect["body_contains"], "ok")
         self.assertEqual(site.expect["final_url"], "https://www.example.com/")
         self.assertEqual(site.expect["dns"]["NS"], ["ns1.example.com"])
-        self.assertEqual(site.url, "https://example.com/")
-        self.assertEqual(site.redirect_url, "http://example.com/")
+        self.assertEqual(site.registered_domain, "example.com")
+        self.assertEqual(site.url, "https://api.example.com/")
+        self.assertEqual(site.redirect_url, "http://api.example.com/")
 
     def test_rejects_duplicate_site_ids(self) -> None:
         payload = {
