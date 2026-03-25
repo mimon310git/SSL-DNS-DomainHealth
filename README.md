@@ -2,6 +2,12 @@
 
 Domain Sentinel is a small multi-site SSL, DNS, redirect, endpoint, and domain health manager built as a portfolio-ready ops utility.
 
+## Report Preview
+
+The generated HTML report gives a quick view of overall status, per-site checks, and detected changes.
+
+![Domain Sentinel HTML report overview](docs/screenshots/report_screensh.png)
+
 ## What it does
 
 - checks SSL certificate expiry and basic TLS details
